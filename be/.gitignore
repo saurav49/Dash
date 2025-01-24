@@ -1,0 +1,38 @@
+# Node.js dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build and temporary files
+dist/
+build/
+tmp/
+
+# Test coverage
+coverage/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Uploaded files
+uploads/
+
+# IDE settings
+.idea/
+.vscode/
+*.swp
+
+# PM2 process manager
+pm2.pid
+
+# Optional npm cache
+.npm/
