@@ -3,10 +3,11 @@ import express from "express";
 import axios from "axios";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import {
-  chatPrompt,
+  reactjsPrompt,
   getSystemPrompt,
   getTemplatePrompt,
   getUserPrompt,
+  vuejsPrompt,
 } from "./prompts/prompts";
 
 const app = express();
@@ -15,8 +16,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 app.use(express.json());
 
-app.post("/generate-content", async (req, res) => {
-  const prompt = req.body.prompt;
+const generateContent = async (prompt: string) => {
   try {
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY ?? "");
     const model = genAI.getGenerativeModel({
@@ -62,9 +62,8 @@ app.post("/generate-content", async (req, res) => {
     }
   } catch (error: any) {
     console.error(error.response?.data || error.message);
-    res.status(500).json({ error: "Failed to generate content" });
   }
-});
+};
 app.post("/template", async (req, res) => {
   try {
     const prompt = req.body.prompt;
@@ -76,11 +75,33 @@ app.post("/template", async (req, res) => {
         maxOutputTokens: 100,
       },
     });
-    const result = await model.generateContentStream(prompt);
-
-    for await (const chunk of result.stream) {
-      const chunkText = chunk.text();
-      console.log(chunkText);
+    const result = await model.generateContent(prompt);
+    const templateType = result.response.text().toLowerCase().trim();
+    console.log({ templateType });
+    if (templateType !== "react" && templateType !== "vue") {
+      res.status(403).json({
+        status: false,
+        message: "Invalid template type",
+      });
+      return;
+    }
+    if (templateType === "react") {
+      res.status(200).json({
+        success: true,
+        data: {
+          ...reactjsPrompt,
+        },
+      });
+      return;
+    }
+    if (templateType === "vue") {
+      res.status(200).json({
+        success: true,
+        data: {
+          ...vuejsPrompt,
+        },
+      });
+      return;
     }
   } catch (error: any) {
     console.error(error.response?.data || error.message);
