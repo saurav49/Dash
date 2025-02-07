@@ -17,9 +17,21 @@ export async function POST(req: Request) {
       history: messages,
     });
     const result = await chat.sendMessageStream(``);
-    return Response.json({
-      success: true,
-      data: result.stream,
+    const stream = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder();
+        for await (const message of result.stream) {
+          const chunck = message.text();
+          controller.enqueue(encoder.encode(chunck));
+        }
+        controller.close();
+      },
+    });
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Transfer-Encoding": "chunked",
+      },
     });
   } catch (error) {
     console.error(error);
